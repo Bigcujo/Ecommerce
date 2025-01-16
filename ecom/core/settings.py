@@ -25,6 +25,8 @@ SECRET_KEY = 'django-insecure-oni=bqq44sjm(#b&_%^e5zcnpr+x5)auz(qvijjgi4qfef8k3t
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+AUTH_USER_MODEL = 'store.CustomUser'
+
 
 ALLOWED_HOSTS = []
 
@@ -39,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'store',
+    'cart',
 ]
 
 MIDDLEWARE = [
