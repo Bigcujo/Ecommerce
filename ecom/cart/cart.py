@@ -63,3 +63,25 @@ class Cart():
         self.session.modified = True
 
 
+    def cart_total(self):
+        # getting all the keys in the cart dictioanry 
+        product_ids = self.cart.keys()
+        # use the product id in the cart to find the object in the database
+        products = Product.objects.filter(id__in = product_ids)
+        quantities = self.cart
+        #start counting from zero
+        total = 0
+        #loop through the items in the dictionary 
+        for key, value in quantities.items():
+            # convert the key to an int so i can do 
+            key = int(key)
+            for product in products:
+                if product.id == key:
+                    if product.is_sale:
+                        total = total + (product.sale_price * value)
+                    else:
+                        total = total + (product.price * value)
+        return total
+
+
+
