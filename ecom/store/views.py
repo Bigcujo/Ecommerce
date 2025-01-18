@@ -7,6 +7,13 @@ from .forms import UserRegistrationForm
 # Create your views here.
 
 
+#category summary page
+def category_summary(request):
+    categories = Category.objects.all()
+
+    return render(request, 'store/category_summary.html', {"categories":categories})
+
+
 #category page
 def category(request, boo):
     #swap the dash for space
