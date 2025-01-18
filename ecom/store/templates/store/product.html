@@ -44,6 +44,7 @@
     <div class="col-md-2">Quantity:</div>
                 <div class="col-md-2">
                 <select class="form-select form-select-sm" id="qty-cart">
+
                   <option value="1">1</option>
                   <option value="2">2</option>
                   <option value="3">3</option>
@@ -75,14 +76,16 @@
       url: '{% url 'cart_add' %}',
       data: {
         product_id: $('#add-cart').val(),
+        product_qty: $('#qty-cart option:selected').text(),
         csrfmiddlewaretoken: '{{ csrf_token }}',
         action: 'post'
       },
 
       success: function(json){
         //console.log(json)
-        document.getElementById("cart_quantity").
-          textContent = json.qty
+        //document.getElementById("cart_quantity").
+          //textContent = json.qty
+          location.reload();
       
       },
       error: function(xhr, errmsg, err){
