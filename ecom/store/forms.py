@@ -1,5 +1,5 @@
 from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, SetPasswordForm
 from django import forms
 from .models import CustomUser
 from crispy_forms.layout import Layout, Submit, Row, Column
@@ -50,3 +50,22 @@ class UserRegistrationForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+    
+
+
+# user update form
+class UserUpdateForm(forms.ModelForm):
+    email = forms.EmailField(label="", widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Email Address'}), required=False)
+    first_name = forms.CharField(label="", max_length=100, widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'First Name'}), required=False)
+    last_name = forms.CharField(label="", max_length=100, widget=forms.TextInput(attrs={'class':'form-control', 'placeholder':'Last Name'}), required=False)
+
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name']
+
+# update user password
+class ChangePasswordForm(SetPasswordForm):
+     class Meta:
+          model = CustomUser
+          fields = ['new_password1', 'new_password2']

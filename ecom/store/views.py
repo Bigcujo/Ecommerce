@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
-from .models import Product, Category
+from .models import Product, Category, CustomUser
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, UserUpdateForm, ChangePasswordForm
 
 # Create your views here.
 
@@ -84,3 +84,40 @@ def register_user(request):
         print("GET request")
 
     return render(request, 'store/register.html', {'form': form})
+
+
+# the user update page
+def update_user(request):
+    if request.user.is_authenticated:
+        current_user = CustomUser.objects.get(id=request.user.id)
+        user_form = UserUpdateForm(request.POST or None, instance=current_user)
+
+        if user_form.is_valid():
+            user_form.save()
+            login(request, current_user)
+            messages.success(request, "User has been Updated!!")
+            return redirect('home')
+        return render(request, "store/update_user.html", {'user_form':user_form})
+    else:
+        messages.success(request, "You must be logged in To Access That Page!!")
+        return  redirect('home')
+
+# update user password
+def update_password(request):
+        if request.user.is_authenticated:
+            current_user = request.user
+            if request.method == 'POST':
+                form = ChangePasswordForm(current_user, request.POST)
+                if form.is_valid():
+                    form.save()
+                    messages.success(request, "Your Password has been updated!!")
+                    login(request, current_user)
+                    return redirect('update_user')
+
+
+            else:
+                form = ChangePasswordForm(current_user)
+                return render(request, 'store/update_password.html', {'form':form})
+        else:
+            messages.success(request, "You must be Logged in to access this page")
+            return redirect('home')
