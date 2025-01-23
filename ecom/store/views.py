@@ -113,6 +113,10 @@ def update_password(request):
                     messages.success(request, "Your Password has been updated!!")
                     login(request, current_user)
                     return redirect('update_user')
+                else:
+                    for error in list(form.errors.values()):
+                        messages.error(request, error)
+                        return redirect('update_password')
 
 
             else:
