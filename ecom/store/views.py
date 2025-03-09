@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect
-from .models import Product, Category, CustomUser
+from .models import Product, Category, CustomUser, Profile
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from .forms import UserRegistrationForm, UserUpdateForm, ChangePasswordForm
-
+from .forms import UserRegistrationForm, UserUpdateForm, ChangePasswordForm, UserInfoForm
+from django.db.models import Q
+import json
+from cart.cart import Cart
 # Create your views here.
 
 
@@ -52,6 +54,17 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
+            #Do stuffs to the shopping cart
+            current_user = Profile.objects.get(user__id=request.user.id)
+            saved_cart = current_user.old_cart
+
+            if saved_cart:
+                converted_cart = json.loads(saved_cart)
+                #add the loaded cart to the front-end
+                cart = Cart(request)
+                for key, value in converted_cart.items():
+                    cart.db_add(product=key, quantity=value)
+
             messages.success(request, f"Welcome back {user.get_username()}")
             return redirect('home')
         else:
@@ -73,9 +86,12 @@ def register_user(request):
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user_name = form.cleaned_data.get('username')
+            password = form.cleaned_data.get('password')
             messages.success(request, f'Your account has been created successfully for {user_name}!!')
             form.save()
-            return redirect('home')  # Redirect to login after successful registration
+            user = authenticate(username=user_name, password=password)
+            login(request, user)
+            return redirect('update_info')  # Redirect to login after successful registration
         else:
             print("Form is invalid")
             print(form.errors)
@@ -125,3 +141,32 @@ def update_password(request):
         else:
             messages.success(request, "You must be Logged in to access this page")
             return redirect('home')
+        
+
+
+# update user info
+def update_info(request):
+    if request.user.is_authenticated:
+        # Get Current User
+        current_user = Profile.objects.get(user__id=request.user.id)
+        form = UserInfoForm(request.POST or None, instance=current_user)
+        if form.is_valid():
+            # save userinfo form
+            form.save()
+            messages.success(request, "Your Info has been Updated")
+            return redirect('home')
+        return render(request, "store/update_info.html", {'form':form})
+    else:
+        messages.success(request, "You Must Be logged In To Access That Page!!")
+        return redirect('home')
+    
+
+# search view
+def search(request):
+    if request.method == "POST":
+        searched = request.POST['searched']
+        searched = Product.objects.filter(Q(name__icontains=searched) | Q(description__icontains=searched) )
+        if not searched:
+            messages.success(request, "Searched item not availabe")
+        return render(request, 'store/search.html', {'searched':searched})
+    return render(request, 'store/search.html', {})

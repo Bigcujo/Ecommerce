@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.utils import timezone
 import datetime
+from django.db.models.signals  import post_save
 
 #This the categories of the products
 class Category(models.Model):
@@ -52,10 +53,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
 
-
-    
-
-
 # This is my product model
 class Product(models.Model):
     name = models.CharField(max_length=100)
@@ -82,3 +79,35 @@ class Order(models.Model):
 
     def __str__(self):
         return self.product   
+    
+
+
+# this is the profile model
+class Profile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    date_modified = models.DateField(CustomUser, auto_now=True)
+    phone = models.CharField(max_length=30, blank=True)
+    address1 = models.CharField(max_length=200, blank=True)
+    address2 = models.CharField(max_length=200, blank=True)
+    city = models.CharField(max_length=200, blank=True)
+    state = models.CharField(max_length=200, blank=True)
+    zipcode = models.CharField(max_length=200, blank=True)
+    country = models.CharField(max_length=200, blank=True)
+    old_cart = models.CharField(max_length=200, blank=True, null=True)
+
+
+
+    def __str__(self):
+        return self.user.username
+    
+
+# create a user profile by default when user signs up.
+def create_profile(sender, instance, created, **kwargs):
+    if created:
+        user_profile = Profile(user=instance)
+        user_profile.save()
+# automatically created a profile for the registered user
+post_save.connect(create_profile, sender=CustomUser)
+
+    
+
