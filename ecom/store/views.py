@@ -6,6 +6,8 @@ from .forms import UserRegistrationForm, UserUpdateForm, ChangePasswordForm, Use
 from django.db.models import Q
 import json
 from cart.cart import Cart
+from payment.models import ShippingAddress
+from payment.forms import ShippingForm
 # Create your views here.
 
 
@@ -105,15 +107,20 @@ def register_user(request):
 # the user update page
 def update_user(request):
     if request.user.is_authenticated:
-        current_user = CustomUser.objects.get(id=request.user.id)
+        #get curret user
+        current_user = Profile.objects.get(user__id=request.user.id)
+        # get curret user's shipping form
+        shipping_user = ShippingAddress.objects.get(user__id=request.user.id)
         user_form = UserUpdateForm(request.POST or None, instance=current_user)
+        shipping_form = ShippingForm(request.POST or None, instance=shipping_user)
 
-        if user_form.is_valid():
+        if user_form.is_valid() or shipping_form.is_valid():
             user_form.save()
+            shipping_form.save()
             login(request, current_user)
             messages.success(request, "User has been Updated!!")
             return redirect('home')
-        return render(request, "store/update_user.html", {'user_form':user_form})
+        return render(request, "store/update_user.html", {'user_form':user_form, 'shipping_form':shipping_form})
     else:
         messages.success(request, "You must be logged in To Access That Page!!")
         return  redirect('home')
