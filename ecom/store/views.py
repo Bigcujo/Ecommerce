@@ -108,16 +108,18 @@ def register_user(request):
 def update_user(request):
     if request.user.is_authenticated:
         #get curret user
-        current_user = Profile.objects.get(user__id=request.user.id)
+        current_user = request.user
+        print(current_user)
         # get curret user's shipping form
         shipping_user = ShippingAddress.objects.get(user__id=request.user.id)
-        user_form = UserUpdateForm(request.POST or None, instance=current_user)
-        shipping_form = ShippingForm(request.POST or None, instance=shipping_user)
+        user_form = UserUpdateForm(request.POST or None, instance=current_user, prefix="user")
+        shipping_form = ShippingForm(request.POST or None, instance=shipping_user, prefix="shipping")
+        
 
         if user_form.is_valid() or shipping_form.is_valid():
             user_form.save()
             shipping_form.save()
-            login(request, current_user)
+            login(request, request.user)
             messages.success(request, "User has been Updated!!")
             return redirect('home')
         return render(request, "store/update_user.html", {'user_form':user_form, 'shipping_form':shipping_form})
