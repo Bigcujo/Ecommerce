@@ -57,6 +57,8 @@ def login_view(request):
         if user is not None:
             login(request, user)
             #Do stuffs to the shopping cart
+            if 'session_key' in request.session:
+                del request.session['session_key']
             current_user = Profile.objects.get(user__id=request.user.id)
             saved_cart = current_user.old_cart
 
