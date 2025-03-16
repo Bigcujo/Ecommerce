@@ -79,19 +79,40 @@ def process_order(request):
         shipping_address = f"{my_shipping['shipping_address1']}\n{my_shipping['shipping_address2']}\n{my_shipping['shipping_city']}\n{my_shipping['shipping_state']}\n{my_shipping['shipping_zipcode']}\n{my_shipping['shipping_country']}"
         amount_paid = totals
 
-        print("User:", request.user.username)
-        print("Order Total:", amount_paid)
-        print("Shipping Data:", my_shipping)
-
-
+        
         #create an order model with the information gotten from the session
         if request.user.is_authenticated:
             #get the the logged in user
             user = request.user
+            print(user.id)
+            
             # create order
             print(user)
             create_order = Order(user=user, full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
             create_order.save()
+
+            #add order items
+
+            #get the otder ID
+            order_id = create_order.pk
+
+            #get product Info
+            for product in cart_products:
+                #get product ID
+                product_id = product.id
+                # get Product price
+                if product.is_sale:
+                    price = product.sale_price
+                else:
+                    price = product.price
+
+                # get quantity
+                for key, value in quantities.items():
+                    if int(key) == product.id:
+                        #create order item
+                        create_order_item = OrderItem(order_id=order_id, product_id=product_id, user=user, quantity=value, price=price)
+                        create_order_item.save()
+
 
             messages.success(request, "Order Placed")
             return redirect('home')
@@ -101,6 +122,27 @@ def process_order(request):
             create_order = Order(full_name=full_name, email=email, shipping_address=shipping_address, amount_paid=amount_paid)
             create_order.save()
 
+            #add order item
+
+            #get the order ID
+            order_id = create_order.pk
+
+            # get product info
+            for product in cart_products:
+                # get product ID
+                product_id = product.id
+                # get product price
+                if product.is_sale:
+                    price = product.sale_price
+                else:
+                    price = product.price
+                
+                # get quantity
+                for key, value in quantities.items():
+                    if int(key) == product.id:
+                        #create order item
+                        create_order_item = OrderItem(order_id=order_id, product_id=product_id, quantity=value, price=price)
+                        create_order_item.save()
             messages.success(request, "Order Placed")
             return redirect('home')
     else:
